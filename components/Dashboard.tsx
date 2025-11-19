@@ -38,7 +38,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onChangeView }) => {
       {/* Header Welcome */}
       <div className="flex flex-col">
         <h1 className="text-3xl font-black text-black tracking-tight uppercase">
-          Hola, <span className="text-gray-500">{user.firstName}.</span>
+          Hola, <span className="text-gray-500 capitalize">{user.firstName}.</span>
         </h1>
         <p className="text-sm font-medium text-gray-400 uppercase tracking-widest mt-1">
             Día {user.activeDaysCount || 1} • {user.mainObjective || 'Preparación General'}

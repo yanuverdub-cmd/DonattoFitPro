@@ -30,7 +30,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
       if (user) {
         onLogin(user);
       } else {
-        // Admin Backdoor for instant login if not exists
+        // Admin Backdoor for instant login if not exists (Hidden from UI now)
         if (emailLower === 'admin@donatto.com') {
              const adminUser: User = {
                 id: 'admin_master',
@@ -78,22 +78,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
 
   const handleSocialLogin = (provider: 'google' | 'facebook') => {
     const suffix = provider === 'google' ? 'gmail.com' : 'facebook.com';
-    const mockEmail = `demo_${provider}@${suffix}`;
+    // Simulate a unique email based on timestamp to avoid conflicts in demo
+    const mockEmail = `demo_${provider}_${Date.now()}@${suffix}`;
     
-    let user = dbService.loginUser(mockEmail);
-    
-    if (!user) {
-        const newUser: User = {
-            id: Date.now().toString(),
-            firstName: provider === 'google' ? 'Usuario' : 'Usuario',
-            lastName: provider === 'google' ? 'Google' : 'Facebook',
-            email: mockEmail,
-            age: 25,
-            createdAt: Date.now()
-        };
-        dbService.createUser(newUser);
-        user = dbService.loginUser(mockEmail);
-    }
+    const newUser: User = {
+        id: Date.now().toString(),
+        firstName: 'Atleta', // Default name for social login simulation
+        lastName: provider === 'google' ? 'Google' : 'Facebook',
+        email: mockEmail,
+        age: 25,
+        createdAt: Date.now()
+    };
+    dbService.createUser(newUser);
+    const user = dbService.loginUser(mockEmail);
 
     if (user) {
         onLogin(user);
@@ -130,7 +127,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                     type="text"
                     required
                     placeholder="Nombre"
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all capitalize"
                     value={formData.firstName}
                     onChange={(e) => setFormData({...formData, firstName: e.target.value})}
                   />
@@ -141,7 +138,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                     type="text"
                     required
                     placeholder="Apellido"
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all capitalize"
                     value={formData.lastName}
                     onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                   />
@@ -223,13 +220,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                 )}
             </button>
         </div>
-
-        <div className="mt-4 text-center">
-            <p className="text-[10px] text-gray-400 uppercase">
-                Para Admin prueba: <span className="font-mono">admin@donatto.com</span>
-            </p>
-        </div>
-
       </div>
     </div>
   );
