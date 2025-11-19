@@ -73,10 +73,16 @@ export const dbService = {
     return users ? JSON.parse(users) : [];
   },
 
-  createUser: (user: User): void => {
-    const users = dbService.getUsers();
-    users.push(user);
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  createUser: (user: User): boolean => {
+    try {
+        const users = dbService.getUsers();
+        users.push(user);
+        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        return true;
+    } catch (error) {
+        console.error("Failed to create user (Storage Quota?):", error);
+        return false;
+    }
   },
 
   loginUser: (email: string): User | null => {
@@ -100,12 +106,19 @@ export const dbService = {
     localStorage.removeItem(CURRENT_USER_ID_KEY);
   },
 
-  updateUser: (updatedUser: User): void => {
-    const users = dbService.getUsers();
-    const index = users.findIndex(u => u.id === updatedUser.id);
-    if (index !== -1) {
-      users[index] = updatedUser;
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  updateUser: (updatedUser: User): boolean => {
+    try {
+        const users = dbService.getUsers();
+        const index = users.findIndex(u => u.id === updatedUser.id);
+        if (index !== -1) {
+            users[index] = updatedUser;
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error("Failed to update user (Storage Quota?):", error);
+        return false;
     }
   },
   
@@ -114,8 +127,6 @@ export const dbService = {
       let users = dbService.getUsers();
       users = users.filter(u => u.id !== userId);
       localStorage.setItem(USERS_KEY, JSON.stringify(users));
-      // Optionally clean up logs for that user
-      // But keeping them for data integrity in simple local storage isn't harmful
   },
 
   getUserLogs: (userId: string): ExerciseLog[] => {

@@ -32,9 +32,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-         setMessage('La imagen es demasiado grande. Máx 2MB.');
-         setTimeout(() => setMessage(''), 3000);
+      // Limit to 1MB to preserve LocalStorage
+      if (file.size > 1 * 1024 * 1024) {
+         setMessage('La imagen es muy pesada. Máx 1MB.');
+         setTimeout(() => setMessage(''), 4000);
          return;
       }
       const reader = new FileReader();
@@ -59,9 +60,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
       profilePicture: profilePic
     };
 
-    dbService.updateUser(updatedUser);
-    onUpdateUser(updatedUser);
-    setMessage('Perfil actualizado correctamente.');
+    const success = dbService.updateUser(updatedUser);
+    
+    if (success) {
+        onUpdateUser(updatedUser);
+        setMessage('Perfil actualizado correctamente.');
+    } else {
+        setMessage('Error: Memoria llena. Usa una foto más liviana.');
+    }
     setTimeout(() => setMessage(''), 4000);
   };
 
@@ -148,7 +154,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
             </div>
             <div className="mt-14">
                 <h2 className="text-2xl font-black text-gray-900 capitalize">{user.firstName} {user.lastName}</h2>
-                <p className="text-sm text-gray-500">{user.email}</p>
+                <div className="inline-block mt-1 bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-600 font-bold">
+                    {user.email}
+                </div>
             </div>
             
             <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-100">
@@ -175,12 +183,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
         </h3>
         
         {message && (
-            <div className="mb-6 p-4 bg-black text-white rounded-xl shadow-lg animate-fade-in flex items-center justify-between">
+            <div className={`mb-6 p-4 rounded-xl shadow-lg animate-fade-in flex items-center justify-between ${message.includes('Error') || message.includes('pesada') ? 'bg-red-500 text-white' : 'bg-black text-white'}`}>
                 <div className="flex items-center gap-3">
-                    <CheckCircle size={20} className="text-green-400" />
+                    {message.includes('Error') || message.includes('pesada') ? (
+                        <X size={20} className="text-white" />
+                    ) : (
+                        <CheckCircle size={20} className="text-green-400" />
+                    )}
                     <span className="text-sm font-bold">{message}</span>
                 </div>
-                <button onClick={() => setMessage('')} className="text-gray-400 hover:text-white transition-colors">
+                <button onClick={() => setMessage('')} className="text-white/70 hover:text-white transition-colors">
                     <X size={18} />
                 </button>
             </div>

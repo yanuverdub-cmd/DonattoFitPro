@@ -71,7 +71,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         isAdmin: emailLower === 'admin@donatto.com'
       };
 
-      dbService.createUser(newUser);
+      const created = dbService.createUser(newUser);
+      if (!created) {
+        setError('Error: Memoria del dispositivo llena. No se pudo crear el usuario.');
+        return;
+      }
+
       const loggedIn = dbService.loginUser(newUser.email);
       if (loggedIn) onLogin(loggedIn);
     }
@@ -80,28 +85,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
   const handleSocialLogin = (provider: 'google' | 'facebook') => {
     setIsLoadingSocial(provider);
     
-    // Simulate network delay for better UX
     setTimeout(() => {
         const suffix = provider === 'google' ? 'gmail.com' : 'facebook.com';
-        // Simulate a unique email based on timestamp to avoid conflicts in demo
-        const mockEmail = `demo_${provider}_${Date.now()}@${suffix}`;
+        // Simula un email proveniente de la red social
+        const mockEmail = `usuario_${Date.now().toString().slice(-4)}@${suffix}`;
         
-        const newUser: User = {
-            id: Date.now().toString(),
-            firstName: 'Atleta', // Default name for social login simulation
-            lastName: provider === 'google' ? 'Google' : 'Facebook',
-            email: mockEmail,
-            age: 25,
-            createdAt: Date.now()
-        };
-        dbService.createUser(newUser);
-        const user = dbService.loginUser(mockEmail);
+        // Verificamos si ya existe (simulación)
+        const existingUser = dbService.loginUser(mockEmail);
 
-        setIsLoadingSocial(null);
-        if (user) {
-            onLogin(user);
+        if (existingUser) {
+            setIsLoadingSocial(null);
+            onLogin(existingUser);
+        } else {
+            // SI ES NUEVO: No lo creamos todavía.
+            // Llenamos el email y mandamos al usuario a completar sus datos.
+            setIsLoadingSocial(null);
+            setFormData(prev => ({ ...prev, email: mockEmail, firstName: '', lastName: '', age: '' }));
+            setIsLogin(false); // Cambiar a modo Registro
+            setError(`Conectado con ${provider === 'google' ? 'Google' : 'Facebook'}. Por favor confirma tus datos personales.`);
         }
-    }, 1500);
+    }, 1000);
   };
 
   return (
@@ -120,7 +123,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm font-medium rounded-r">
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm font-medium rounded-r animate-slide-up">
             {error}
           </div>
         )}
@@ -183,7 +186,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
             type="submit"
             className="w-full flex justify-center items-center gap-2 py-4 bg-black text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-gray-800 hover:scale-[1.02] transition-all shadow-lg"
           >
-            {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'} <ArrowRight className="w-4 h-4" />
+            {isLogin ? 'Iniciar Sesión' : 'Completar Registro'} <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
