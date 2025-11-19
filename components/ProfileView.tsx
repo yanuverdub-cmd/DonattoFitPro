@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { User } from '../types';
 import { dbService } from '../services/dbService';
-import { Save, Camera, Target, Scale, Calendar, Trophy, Download, Upload, HardDrive } from 'lucide-react';
+import { Save, Camera, Target, Scale, Trophy, Download, Upload, HardDrive, X, CheckCircle } from 'lucide-react';
 
 interface ProfileViewProps {
   user: User;
@@ -61,7 +61,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser }) 
     dbService.updateUser(updatedUser);
     onUpdateUser(updatedUser);
     setMessage('Perfil actualizado correctamente.');
-    setTimeout(() => setMessage(''), 3000);
+    setTimeout(() => setMessage(''), 4000);
   };
 
   const triggerFileInput = () => {
@@ -174,8 +174,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser }) 
         </h3>
         
         {message && (
-            <div className="mb-4 p-3 bg-black text-white text-sm font-bold rounded text-center animate-fade-in">
-                {message}
+            <div className="mb-6 p-4 bg-black text-white rounded-xl shadow-lg animate-fade-in flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <CheckCircle size={20} className="text-green-400" />
+                    <span className="text-sm font-bold">{message}</span>
+                </div>
+                <button onClick={() => setMessage('')} className="text-gray-400 hover:text-white transition-colors">
+                    <X size={18} />
+                </button>
             </div>
         )}
 
