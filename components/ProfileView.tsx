@@ -2,14 +2,15 @@
 import React, { useState, useRef } from 'react';
 import { User } from '../types';
 import { dbService } from '../services/dbService';
-import { Save, Camera, Target, Scale, Trophy, Download, Upload, HardDrive, X, CheckCircle } from 'lucide-react';
+import { Save, Camera, Target, Scale, Trophy, Download, Upload, HardDrive, X, CheckCircle, LogOut } from 'lucide-react';
 
 interface ProfileViewProps {
   user: User;
   onUpdateUser: (user: User) => void;
+  onLogout: () => void;
 }
 
-export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser }) => {
+export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout }) => {
   const [formData, setFormData] = useState({
     firstName: user.firstName,
     lastName: user.lastName,
@@ -146,7 +147,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser }) 
                 </div>
             </div>
             <div className="mt-14">
-                <h2 className="text-2xl font-black text-gray-900">{user.firstName} {user.lastName}</h2>
+                <h2 className="text-2xl font-black text-gray-900 capitalize">{user.firstName} {user.lastName}</h2>
                 <p className="text-sm text-gray-500">{user.email}</p>
             </div>
             
@@ -189,11 +190,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser }) 
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nombre</label>
-                    <input name="firstName" value={formData.firstName} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-medium" />
+                    <input name="firstName" value={formData.firstName} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-medium capitalize" />
                 </div>
                 <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Apellido</label>
-                    <input name="lastName" value={formData.lastName} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-medium" />
+                    <input name="lastName" value={formData.lastName} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-medium capitalize" />
                 </div>
             </div>
 
@@ -226,7 +227,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser }) 
       </div>
 
       {/* Data Management Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
           <h3 className="text-lg font-bold mb-4 flex items-center">
              <HardDrive className="mr-2" size={20} /> Gestión de Datos
           </h3>
@@ -259,6 +260,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser }) 
               />
           </div>
       </div>
+
+      {/* Logout Button */}
+      <button 
+        onClick={onLogout}
+        className="w-full bg-red-50 text-red-600 font-bold py-4 rounded-2xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2 uppercase tracking-widest text-xs mb-6"
+      >
+          <LogOut size={16} /> Cerrar Sesión
+      </button>
     </div>
   );
 };

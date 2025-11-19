@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { User } from '../types';
 import { dbService } from '../services/dbService';
 import { LogoCircular } from './Layout'; 
-import { ArrowRight, Mail, User as UserIcon, Calendar } from 'lucide-react';
+import { ArrowRight, Mail, User as UserIcon, Calendar, Loader2 } from 'lucide-react';
 
 interface AuthScreenProps {
   onLogin: (user: User) => void;
@@ -18,6 +18,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
     age: '',
   });
   const [error, setError] = useState('');
+  const [isLoadingSocial, setIsLoadingSocial] = useState<'google' | 'facebook' | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +31,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
       if (user) {
         onLogin(user);
       } else {
-        // Admin Backdoor for instant login if not exists (Hidden from UI now)
+        // Admin Backdoor (Hidden logic)
         if (emailLower === 'admin@donatto.com') {
              const adminUser: User = {
                 id: 'admin_master',
@@ -67,7 +68,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         email: emailLower,
         age: parseInt(formData.age),
         createdAt: Date.now(),
-        isAdmin: emailLower === 'admin@donatto.com' // Auto-grant admin
+        isAdmin: emailLower === 'admin@donatto.com'
       };
 
       dbService.createUser(newUser);
@@ -77,24 +78,30 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
   };
 
   const handleSocialLogin = (provider: 'google' | 'facebook') => {
-    const suffix = provider === 'google' ? 'gmail.com' : 'facebook.com';
-    // Simulate a unique email based on timestamp to avoid conflicts in demo
-    const mockEmail = `demo_${provider}_${Date.now()}@${suffix}`;
+    setIsLoadingSocial(provider);
     
-    const newUser: User = {
-        id: Date.now().toString(),
-        firstName: 'Atleta', // Default name for social login simulation
-        lastName: provider === 'google' ? 'Google' : 'Facebook',
-        email: mockEmail,
-        age: 25,
-        createdAt: Date.now()
-    };
-    dbService.createUser(newUser);
-    const user = dbService.loginUser(mockEmail);
+    // Simulate network delay for better UX
+    setTimeout(() => {
+        const suffix = provider === 'google' ? 'gmail.com' : 'facebook.com';
+        // Simulate a unique email based on timestamp to avoid conflicts in demo
+        const mockEmail = `demo_${provider}_${Date.now()}@${suffix}`;
+        
+        const newUser: User = {
+            id: Date.now().toString(),
+            firstName: 'Atleta', // Default name for social login simulation
+            lastName: provider === 'google' ? 'Google' : 'Facebook',
+            email: mockEmail,
+            age: 25,
+            createdAt: Date.now()
+        };
+        dbService.createUser(newUser);
+        const user = dbService.loginUser(mockEmail);
 
-    if (user) {
-        onLogin(user);
-    }
+        setIsLoadingSocial(null);
+        if (user) {
+            onLogin(user);
+        }
+    }, 1500);
   };
 
   return (
@@ -194,16 +201,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         <div className="mt-6 grid grid-cols-2 gap-4">
             <button 
                 onClick={() => handleSocialLogin('google')}
-                className="flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                disabled={isLoadingSocial !== null}
+                className="flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-                <svg className="h-5 w-5" viewBox="0 0 24 24"><path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" fill="currentColor"/></svg>
+                {isLoadingSocial === 'google' ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-gray-600" />
+                ) : (
+                    <svg className="h-5 w-5" viewBox="0 0 24 24"><path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" fill="currentColor"/></svg>
+                )}
                 <span className="ml-2 text-sm font-bold text-gray-600">Google</span>
             </button>
             <button 
                 onClick={() => handleSocialLogin('facebook')}
-                className="flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                disabled={isLoadingSocial !== null}
+                className="flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-                <svg className="h-5 w-5 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                {isLoadingSocial === 'facebook' ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-[#1877F2]" />
+                ) : (
+                    <svg className="h-5 w-5 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                )}
                 <span className="ml-2 text-sm font-bold text-gray-600">Facebook</span>
             </button>
         </div>

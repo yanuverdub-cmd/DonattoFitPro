@@ -87,7 +87,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
       <header className="bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm pt-safe">
         <div className="max-w-lg mx-auto px-4">
           <div className="flex justify-between items-center h-16">
-            <div className="cursor-pointer active:opacity-70 transition-opacity" onClick={() => onChangeView('dashboard')}>
+            <div 
+                className="cursor-pointer active:opacity-70 transition-opacity" 
+                onClick={() => onChangeView('dashboard')}
+                title="Ir a Inicio"
+            >
               <LogoHorizontal />
             </div>
 

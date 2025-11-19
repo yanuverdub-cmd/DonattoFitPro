@@ -52,7 +52,7 @@ export default function App() {
       case 'merch':
         return <MerchView />;
       case 'profile':
-        return <ProfileView user={currentUser} onUpdateUser={setCurrentUser} />;
+        return <ProfileView user={currentUser} onUpdateUser={setCurrentUser} onLogout={handleLogout} />;
       case 'admin':
         return currentUser.isAdmin ? <AdminView /> : <Dashboard user={currentUser} onChangeView={setCurrentView} />;
       default:
