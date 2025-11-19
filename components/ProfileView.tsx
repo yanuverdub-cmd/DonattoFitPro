@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { User } from '../types';
 import { dbService } from '../services/dbService';
-import { Save, Camera, Target, Scale, Trophy, Download, Upload, HardDrive, X, CheckCircle, LogOut } from 'lucide-react';
+import { Save, Camera, Target, Scale, Trophy, Download, Upload, HardDrive, X, CheckCircle, LogOut, User as UserIcon, Mail } from 'lucide-react';
 
 interface ProfileViewProps {
   user: User;
@@ -41,6 +41,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfilePic(reader.result as string);
+        // Visual feedback that save is needed
+        if (!message) setMessage('¡Foto cargada! Recuerda guardar cambios.');
       };
       reader.readAsDataURL(file);
     }
@@ -111,66 +113,51 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
 
   return (
     <div className="pb-20">
-      {/* Header Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-        <div className="h-24 bg-black relative">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-gray-800 rounded-bl-full opacity-50"></div>
-        </div>
-        <div className="px-6 pb-6 relative">
-            <div className="absolute -top-12 left-6">
-                <div 
-                  className="relative group cursor-pointer"
-                  onClick={triggerFileInput}
-                  title="Cambiar foto de perfil"
-                >
-                    <div className="h-24 w-24 rounded-full bg-white p-1 shadow-md overflow-hidden relative">
-                        <img 
-                            src={profilePic || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=000000&color=fff`} 
-                            alt="Profile" 
-                            className="h-full w-full rounded-full object-cover hover:opacity-90 transition-opacity" 
-                        />
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                           <Camera className="text-white" size={24} />
-                        </div>
-                    </div>
-                    <button 
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          triggerFileInput();
-                        }}
-                        className="absolute bottom-0 right-0 bg-black text-white p-2 rounded-full shadow hover:bg-gray-800 transition-colors z-10"
-                    >
-                        <Camera size={14} />
-                    </button>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      className="hidden" 
-                      accept="image/*" 
-                      onChange={handleFileChange} 
+      {/* Identity Card Header */}
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden mb-6 relative">
+        {/* Decorative Background */}
+        <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-gray-50 to-white"></div>
+        
+        <div className="px-6 pt-8 pb-6 relative flex flex-col items-center text-center z-10">
+            {/* Avatar */}
+            <div className="relative group cursor-pointer mb-4" onClick={triggerFileInput}>
+                <div className={`w-28 h-28 rounded-full p-1.5 shadow-lg ${message.includes('Recuerda') ? 'bg-yellow-400 animate-pulse' : 'bg-white'}`}>
+                    <img 
+                        src={profilePic || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=000000&color=fff`} 
+                        alt="Profile" 
+                        className="w-full h-full rounded-full object-cover border border-gray-100" 
                     />
                 </div>
-            </div>
-            <div className="mt-14">
-                <h2 className="text-2xl font-black text-gray-900 capitalize">{user.firstName} {user.lastName}</h2>
-                <div className="inline-block mt-1 bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-600 font-bold">
-                    {user.email}
+                <div className="absolute bottom-1 right-1 bg-black text-white p-2 rounded-full shadow-md hover:scale-110 transition-transform">
+                    <Camera size={14} />
                 </div>
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
             </div>
+
+            {/* User Info */}
+            <h2 className="text-2xl font-black text-gray-900 capitalize tracking-tight">
+                {user.firstName} {user.lastName}
+            </h2>
             
-            <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-100">
-                <div className="text-center">
-                    <p className="text-xs text-gray-400 uppercase font-bold">Días Activos</p>
-                    <p className="font-black text-xl">{user.activeDaysCount || 1}</p>
+            {/* Prominent Email Badge */}
+            <div className="mt-2 flex items-center gap-2 bg-gray-100 px-4 py-1.5 rounded-full">
+                <Mail size={12} className="text-gray-500" />
+                <span className="text-xs font-bold text-gray-600">{user.email}</span>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-8 mt-8 w-full border-t border-gray-100 pt-6">
+                <div>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Días Activos</p>
+                    <p className="font-black text-xl text-black mt-1">{user.activeDaysCount || 1}</p>
                 </div>
-                <div className="text-center border-l border-gray-100">
-                    <p className="text-xs text-gray-400 uppercase font-bold">Edad</p>
-                    <p className="font-black text-xl">{user.age}</p>
+                <div className="relative after:content-[''] after:absolute after:right-0 after:top-2 after:h-8 after:w-[1px] after:bg-gray-100">
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Edad</p>
+                    <p className="font-black text-xl text-black mt-1">{user.age}</p>
                 </div>
-                <div className="text-center border-l border-gray-100">
-                    <p className="text-xs text-gray-400 uppercase font-bold">Nivel</p>
-                    <p className="font-black text-xl">PRO</p>
+                <div>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Nivel</p>
+                    <p className="font-black text-xl text-black mt-1">{user.isAdmin ? 'ADMIN' : 'PRO'}</p>
                 </div>
             </div>
         </div>
@@ -190,78 +177,78 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
                     ) : (
                         <CheckCircle size={20} className="text-green-400" />
                     )}
-                    <span className="text-sm font-bold">{message}</span>
+                    <span className="text-xs font-bold">{message}</span>
                 </div>
                 <button onClick={() => setMessage('')} className="text-white/70 hover:text-white transition-colors">
-                    <X size={18} />
+                    <X size={16} />
                 </button>
             </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Nombre</label>
+                    <UserIcon size={14} className="absolute bottom-3 left-0 text-gray-300" />
+                    <input name="firstName" value={formData.firstName} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 pl-6 outline-none bg-transparent font-bold text-sm capitalize transition-colors" />
+                </div>
+                <div className="relative">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Apellido</label>
+                    <UserIcon size={14} className="absolute bottom-3 left-0 text-gray-300" />
+                    <input name="lastName" value={formData.lastName} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 pl-6 outline-none bg-transparent font-bold text-sm capitalize transition-colors" />
+                </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nombre</label>
-                    <input name="firstName" value={formData.firstName} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-medium capitalize" />
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 flex items-center gap-1"><Scale size={12}/> Peso (kg)</label>
+                    <input type="text" name="currentWeight" value={formData.currentWeight} onChange={handleChange} placeholder="Ej: 75.5" className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-bold text-sm" />
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Apellido</label>
-                    <input name="lastName" value={formData.lastName} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-medium capitalize" />
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 flex items-center gap-1"><Trophy size={12}/> Objetivo</label>
+                    <select name="mainObjective" value={formData.mainObjective} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-bold text-sm">
+                        <option value="">Seleccionar...</option>
+                        <option value="Hipertrofia">Ganar Músculo</option>
+                        <option value="Definición">Perder Grasa</option>
+                        <option value="Fuerza">Fuerza Pura</option>
+                        <option value="Resistencia">Resistencia</option>
+                        <option value="Salud">Salud General</option>
+                    </select>
                 </div>
-            </div>
-
-            <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1 flex items-center gap-1"><Scale size={12}/> Peso Actual (kg)</label>
-                <input type="text" name="currentWeight" value={formData.currentWeight} onChange={handleChange} placeholder="Ej: 75.5" className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-medium" />
-            </div>
-
-            <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1 flex items-center gap-1"><Trophy size={12}/> Objetivo Principal</label>
-                <select name="mainObjective" value={formData.mainObjective} onChange={handleChange} className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-medium">
-                    <option value="">Seleccionar...</option>
-                    <option value="Hipertrofia">Ganar Músculo (Hipertrofia)</option>
-                    <option value="Definición">Perder Grasa (Definición)</option>
-                    <option value="Fuerza">Ganar Fuerza</option>
-                    <option value="Resistencia">Resistencia / Cardio</option>
-                    <option value="Salud">Salud General</option>
-                </select>
             </div>
 
              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Meta Específica</label>
-                <input type="text" name="targetGoal" value={formData.targetGoal} onChange={handleChange} placeholder="Ej: Bajar 5kg para verano" className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-medium" />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Meta Personal</label>
+                <input type="text" name="targetGoal" value={formData.targetGoal} onChange={handleChange} placeholder="Ej: Bajar 5kg para verano" className="w-full border-b-2 border-gray-200 focus:border-black py-2 outline-none bg-transparent font-bold text-sm" />
             </div>
 
-            <button type="submit" className="w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-900 transition-colors mt-4 flex justify-center items-center active:scale-[0.99]">
-                <Save size={18} className="mr-2" /> GUARDAR PERFIL
+            <button type="submit" className="w-full bg-black text-white font-bold py-4 rounded-xl hover:bg-gray-900 transition-all mt-4 flex justify-center items-center shadow-lg active:scale-[0.99] uppercase tracking-widest text-xs">
+                <Save size={16} className="mr-2" /> Guardar Cambios
             </button>
         </form>
       </div>
 
       {/* Data Management Section */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-bold mb-4 flex items-center">
-             <HardDrive className="mr-2" size={20} /> Gestión de Datos
+          <h3 className="text-sm font-black uppercase tracking-tight mb-4 flex items-center gap-2">
+             <HardDrive size={16} /> Gestión de Datos
           </h3>
-          <p className="text-xs text-gray-500 mb-4">
-             Tus datos se guardan en este dispositivo. Haz una copia de seguridad para transferirlos.
-          </p>
           
           <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={handleDownloadBackup}
-                className="flex flex-col items-center justify-center gap-2 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-black transition-colors"
+                className="flex flex-col items-center justify-center gap-2 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-black hover:bg-white transition-all group"
               >
-                 <Download size={24} />
-                 <span className="text-xs font-black uppercase">Exportar Copia</span>
+                 <Download size={20} className="text-gray-400 group-hover:text-black" />
+                 <span className="text-[10px] font-black uppercase">Descargar Copia</span>
               </button>
 
               <button 
                 onClick={() => restoreInputRef.current?.click()}
-                className="flex flex-col items-center justify-center gap-2 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-black transition-colors"
+                className="flex flex-col items-center justify-center gap-2 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-black hover:bg-white transition-all group"
               >
-                 <Upload size={24} />
-                 <span className="text-xs font-black uppercase">Importar Datos</span>
+                 <Upload size={20} className="text-gray-400 group-hover:text-black" />
+                 <span className="text-[10px] font-black uppercase">Importar Datos</span>
               </button>
               <input 
                  type="file" 

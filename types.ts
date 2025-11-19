@@ -25,6 +25,7 @@ export interface User {
   email: string;
   age: number;
   createdAt: number;
+  lastLogin?: number; // New field for analytics
   profilePicture?: string;
   currentWeight?: string;
   mainObjective?: string;

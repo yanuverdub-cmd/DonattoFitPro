@@ -88,23 +88,38 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
     setTimeout(() => {
         const suffix = provider === 'google' ? 'gmail.com' : 'facebook.com';
         // Simula un email proveniente de la red social
-        const mockEmail = `usuario_${Date.now().toString().slice(-4)}@${suffix}`;
+        const mockEmail = `atleta_${Date.now().toString().slice(-4)}@${suffix}`;
         
-        // Verificamos si ya existe (simulación)
+        // 1. Intentamos loguear
         const existingUser = dbService.loginUser(mockEmail);
 
         if (existingUser) {
             setIsLoadingSocial(null);
             onLogin(existingUser);
         } else {
-            // SI ES NUEVO: No lo creamos todavía.
-            // Llenamos el email y mandamos al usuario a completar sus datos.
+            // 2. SI ES NUEVO: Lo creamos AUTOMÁTICAMENTE (Sin formulario)
+            const newUser: User = {
+                id: Date.now().toString(),
+                firstName: 'Atleta', // Nombre por defecto
+                lastName: provider === 'google' ? 'Google' : 'Facebook',
+                email: mockEmail,
+                age: 25, // Edad por defecto (se edita en perfil)
+                createdAt: Date.now(),
+                isAdmin: false,
+                profilePicture: `https://ui-avatars.com/api/?name=Atleta+${provider}&background=000000&color=fff`
+            };
+
+            dbService.createUser(newUser);
+            const loggedIn = dbService.loginUser(newUser.email);
+            
             setIsLoadingSocial(null);
-            setFormData(prev => ({ ...prev, email: mockEmail, firstName: '', lastName: '', age: '' }));
-            setIsLogin(false); // Cambiar a modo Registro
-            setError(`Conectado con ${provider === 'google' ? 'Google' : 'Facebook'}. Por favor confirma tus datos personales.`);
+            if (loggedIn) {
+                onLogin(loggedIn);
+            } else {
+                setError('Error al crear cuenta social.');
+            }
         }
-    }, 1000);
+    }, 1500); // Un poco más de delay para que se sienta el "proceso"
   };
 
   return (

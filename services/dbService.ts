@@ -1,5 +1,5 @@
 
-import { User, ExerciseLog, Tip, Recipe } from '../types';
+import { User, ExerciseLog, Tip, Recipe, ExerciseType } from '../types';
 
 const DB_PREFIX = 'donatto_fitpro_';
 const USERS_KEY = `${DB_PREFIX}users`;
@@ -87,8 +87,15 @@ export const dbService = {
 
   loginUser: (email: string): User | null => {
     const users = dbService.getUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (user) {
+    const userIndex = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+    
+    if (userIndex !== -1) {
+      const user = users[userIndex];
+      // Update lastLogin metrics
+      user.lastLogin = Date.now();
+      users[userIndex] = user;
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
       localStorage.setItem(CURRENT_USER_ID_KEY, user.id);
       return user;
     }
@@ -201,5 +208,44 @@ export const dbService = {
           console.error("Restore failed", e);
           return false;
       }
+  },
+
+  // --- ANALYTICS DASHBOARD HELPERS ---
+  getDashboardStats: () => {
+      const users = dbService.getUsers();
+      const logsMap: Record<string, ExerciseLog[]> = JSON.parse(localStorage.getItem(LOGS_KEY) || '{}');
+      
+      // Flatten all logs
+      const allLogs = Object.values(logsMap).flat();
+
+      // Activity per day (Last 7 days)
+      const last7Days = [...Array(7)].map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        return d.toLocaleDateString(undefined, { weekday: 'short' }); // e.g., "Mon", "Tue"
+      }).reverse();
+
+      const activityData = last7Days.map(day => ({ name: day, logs: 0 }));
+      
+      allLogs.forEach(log => {
+          const logDay = new Date(log.date).toLocaleDateString(undefined, { weekday: 'short' });
+          const dayIndex = activityData.findIndex(d => d.name === logDay);
+          if (dayIndex !== -1) activityData[dayIndex].logs += 1;
+      });
+
+      // Exercise Type Distribution
+      const weightCount = allLogs.filter(l => l.type === ExerciseType.WEIGHT).length;
+      const cardioCount = allLogs.filter(l => l.type === ExerciseType.CARDIO).length;
+
+      return {
+          totalUsers: users.length,
+          totalLogs: allLogs.length,
+          activeUsersToday: users.filter(u => u.lastLogin && new Date(u.lastLogin).toDateString() === new Date().toDateString()).length,
+          activityChart: activityData,
+          distributionChart: [
+              { name: 'Pesas', value: weightCount },
+              { name: 'Cardio', value: cardioCount }
+          ]
+      };
   }
 };
