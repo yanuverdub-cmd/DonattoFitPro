@@ -1,0 +1,9 @@
+{
+  "name": "Donatto Fit Pro",
+  "short_name": "Donatto",
+  "start_url": "/",
+  "desplay": "standalone",
+  "theme-color": "#000000",
+  "brackround_color": "#ffffff",
+  "icons": []
+}
